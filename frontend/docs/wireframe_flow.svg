@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="100%" height="100%">
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .card { fill: #ffffff; stroke: #e2e8f0; stroke-width: 1.5; rx: 12; }
+      .header-bg { fill: #ffffff; stroke: #e2e8f0; stroke-width: 1; }
+      .primary { fill: #059669; }
+      .primary-light { fill: #ecfdf5; stroke: #10b981; }
+      .accent { fill: #d97706; }
+      .accent-light { fill: #fffbeb; stroke: #f59e0b; }
+      .text-dark { fill: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      .text-muted { fill: #64748b; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      .text-white { fill: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      .title { font-weight: 700; font-size: 20px; }
+      .subtitle { font-weight: 500; font-size: 14px; }
+      .pill { rx: 16; font-size: 12px; font-weight: 600; }
+      .btn { rx: 8; cursor: pointer; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="700" class="bg" />
+
+  <!-- Navigation Bar -->
+  <rect x="0" y="0" width="1200" height="64" class="header-bg" />
+  <rect x="32" y="14" width="36" height="36" rx="8" class="primary" />
+  <text x="50" y="38" text-anchor="middle" class="text-white" font-weight="bold" font-size="16">CB</text>
+  <text x="80" y="34" class="text-dark title" font-size="18">BreedWise</text>
+  <text x="80" y="48" class="text-muted subtitle" font-size="12">Indian Cattle &amp; Buffalo Breed Recognition</text>
+  <rect x="980" y="18" width="188" height="28" rx="14" class="primary-light" />
+  <circle cx="996" cy="32" r="4" fill="#10b981" />
+  <text x="1010" y="36" class="primary subtitle" font-size="12" font-weight="600">FastAPI API Connected</text>
+
+  <!-- Hero Section Banner -->
+  <rect x="32" y="80" width="1136" height="100" class="card" />
+  <rect x="52" y="96" width="120" height="24" rx="12" class="accent-light" />
+  <text x="112" y="112" text-anchor="middle" class="accent subtitle" font-size="11" font-weight="bold">AI-POWERED VISION</text>
+  <text x="52" y="145" class="text-dark title" font-size="22">Identify Indigenous Indian Livestock Breeds</text>
+  <text x="52" y="165" class="text-muted subtitle" font-size="13">Supporting National Livestock Mission and UN SDG 2 (Zero Hunger) using EfficientNet-B0 Deep Learning.</text>
+
+  <!-- Dual Workspace Panels -->
+  <!-- Left Panel: Upload -->
+  <rect x="32" y="196" width="552" height="420" class="card" />
+  <rect x="52" y="216" width="28" height="28" rx="14" class="primary-light" />
+  <text x="66" y="235" text-anchor="middle" class="primary" font-weight="bold" font-size="14">01</text>
+  <text x="90" y="235" class="text-dark title" font-size="16">Upload Livestock Photo</text>
+
+  <!-- Category Toggle -->
+  <rect x="52" y="260" width="120" height="36" rx="8" class="primary" />
+  <text x="112" y="283" text-anchor="middle" class="text-white subtitle" font-size="13">🐄 Cattle</text>
+  <rect x="180" y="260" width="120" height="36" rx="8" fill="#f1f5f9" stroke="#cbd5e1" />
+  <text x="240" y="283" text-anchor="middle" class="text-dark subtitle" font-size="13">🐃 Buffalo</text>
+
+  <!-- Dropzone Area -->
+  <rect x="52" y="312" width="512" height="180" rx="12" fill="#fafafa" stroke="#94a3b8" stroke-dasharray="6,6" stroke-width="1.5" />
+  <circle cx="308" cy="370" r="24" fill="#e2e8f0" />
+  <text x="308" y="377" text-anchor="middle" class="text-dark" font-size="20">📷</text>
+  <text x="308" y="415" text-anchor="middle" class="text-dark subtitle" font-weight="bold">Drag &amp; drop an animal photo here</text>
+  <text x="308" y="435" text-anchor="middle" class="text-muted subtitle" font-size="12">Supports JPEG, PNG, WEBP (Max 5 MB)</text>
+
+  <!-- Submit Action Button -->
+  <rect x="52" y="512" width="512" height="44" rx="8" class="primary btn" />
+  <text x="308" y="539" text-anchor="middle" class="text-white title" font-size="15">Scan &amp; Identify Breed →</text>
+
+  <!-- Quick Demo Samples -->
+  <text x="52" y="585" class="text-muted subtitle" font-size="12">Quick test samples:</text>
+  <rect x="165" y="570" width="60" height="24" rx="12" fill="#f1f5f9" />
+  <text x="195" y="586" text-anchor="middle" class="text-dark subtitle" font-size="11">Gir</text>
+  <rect x="235" y="570" width="70" height="24" rx="12" fill="#f1f5f9" />
+  <text x="270" y="586" text-anchor="middle" class="text-dark subtitle" font-size="11">Sahiwal</text>
+  <rect x="315" y="570" width="70" height="24" rx="12" fill="#f1f5f9" />
+  <text x="350" y="586" text-anchor="middle" class="text-dark subtitle" font-size="11">Murrah</text>
+
+  <!-- Right Panel: Recognition Results -->
+  <rect x="616" y="196" width="552" height="420" class="card" />
+  <rect x="636" y="216" width="28" height="28" rx="14" class="accent-light" />
+  <text x="650" y="235" text-anchor="middle" class="accent" font-weight="bold" font-size="14">02</text>
+  <text x="674" y="235" class="text-dark title" font-size="16">Prediction Results &amp; Breed Profile</text>
+
+  <!-- Result Banner Card -->
+  <rect x="636" y="260" width="512" height="96" rx="10" fill="#f8fafc" stroke="#e2e8f0" />
+  <text x="656" y="292" class="text-dark title" font-size="20">Gir Cattle</text>
+  <rect x="1030" y="272" width="98" height="28" rx="14" class="primary-light" />
+  <text x="1079" y="291" text-anchor="middle" class="primary" font-weight="bold" font-size="13">94.8% Match</text>
+  <!-- Progress bar -->
+  <rect x="656" y="318" width="472" height="10" rx="5" fill="#e2e8f0" />
+  <rect x="656" y="318" width="447" height="10" rx="5" class="primary" />
+
+  <!-- Top 3 Ranking -->
+  <text x="636" y="380" class="text-dark subtitle" font-weight="bold" font-size="13">Confidence Distribution:</text>
+  <text x="636" y="405" class="text-muted subtitle" font-size="12">1. Gir Cattle: 94.8%</text>
+  <text x="636" y="425" class="text-muted subtitle" font-size="12">2. Sahiwal Cattle: 3.2%</text>
+  <text x="636" y="445" class="text-muted subtitle" font-size="12">3. Red Sindhi: 1.1%</text>
+
+  <!-- Breed Profile Details Grid -->
+  <rect x="636" y="465" width="512" height="135" rx="8" fill="#f0fdf4" stroke="#bbf7d0" />
+  <text x="656" y="492" class="primary title" font-size="14">Breed Characteristics &amp; Origin</text>
+  <text x="656" y="516" class="text-dark subtitle" font-size="12"><tspan font-weight="bold">Origin Region:</tspan> Gir hills of Saurashtra, Gujarat</text>
+  <text x="656" y="538" class="text-dark subtitle" font-size="12"><tspan font-weight="bold">Daily Milk Yield:</tspan> 12 - 18 Litres/Day (A2 Beta-Casein rich)</text>
+  <text x="656" y="560" class="text-dark subtitle" font-size="12"><tspan font-weight="bold">Primary Purpose:</tspan> High-yielding Indigenous Dairy</text>
+  <text x="656" y="582" class="text-muted subtitle" font-size="11">Distinctive convex forehead, pendulous ears, and heavy body conformation.</text>
+
+  <!-- Footer -->
+  <rect x="0" y="640" width="1200" height="60" class="header-bg" />
+  <text x="600" y="670" text-anchor="middle" class="text-muted subtitle" font-size="12">Image-Based Breed Recognition System for Cattle &amp; Buffalo in India · SKIT Jaipur · Session 2026-27</text>
+</svg>

@@ -1,0 +1,68 @@
+{
+  "project": "Image-Based Breed Recognition System for Cattle & Buffalo in India",
+  "project_id": "SKIT/AI/2023-2027/023",
+  "author": "Yash Ajmera (23ESKCA125)",
+  "version": "1.0.0",
+  "created_date": "2026-08-20",
+  "design_tokens": {
+    "colors": {
+      "primary": "#059669",
+      "primary_hover": "#047857",
+      "accent": "#d97706",
+      "background": "#f8fafc",
+      "surface": "#ffffff",
+      "text_main": "#0f172a",
+      "text_muted": "#64748b",
+      "border": "#e2e8f0",
+      "error": "#ef4444",
+      "success": "#10b981"
+    },
+    "typography": {
+      "font_family": "Inter, system-ui, sans-serif",
+      "heading_scale": {
+        "h1": "36px",
+        "h2": "28px",
+        "h3": "20px",
+        "h4": "16px"
+      },
+      "body_scale": {
+        "large": "16px",
+        "regular": "14px",
+        "small": "12px"
+      }
+    },
+    "breakpoints": {
+      "sm": "640px",
+      "md": "768px",
+      "lg": "1024px",
+      "xl": "1280px"
+    }
+  },
+  "wireframe_components": [
+    {
+      "id": "comp-navbar",
+      "name": "Navigation & Status Header",
+      "elements": ["Logo", "App Title", "SDG Badge", "Backend API Health Pill"]
+    },
+    {
+      "id": "comp-hero",
+      "name": "Agricultural Hero Header",
+      "elements": ["Headline", "Preservation Tagline", "Feature Pills"]
+    },
+    {
+      "id": "comp-uploader",
+      "name": "Live Livestock Image Ingestion Panel",
+      "elements": ["Category Selector", "Drag & Drop Zone", "Validation Banner", "Quick Sample Selector", "Submit Button"]
+    },
+    {
+      "id": "comp-results",
+      "name": "Breed Identification & Dossier Card",
+      "elements": ["Breed Name Badge", "Confidence Progress Meter", "Top-3 Ranking", "Breed Characteristics Matrix"]
+    },
+    {
+      "id": "comp-history",
+      "name": "Prediction History Table",
+      "elements": ["Timestamp", "Filename", "Label", "Confidence", "Status"]
+    }
+  ]
+}
