@@ -1,0 +1,1 @@
+# Dataset guidance\n\nDataset collection has not started. Do not commit large image datasets to GitHub. Track breed label, source/owner, permitted source URL, access date, license/permission, split and uncertain labels. Remove corrupted/duplicate files and avoid duplicate images crossing train/validation/test splits.

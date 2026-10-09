@@ -1,0 +1,1 @@
+# Team meeting notes\n\nRecord only meetings that actually happened, using their real dates. Include attendees, decisions, work completed, blockers and next actions. Do not invent earlier meetings or backdate commits.

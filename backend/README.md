@@ -1,0 +1,1 @@
+# Backend\n\nOnly `/` and `/health` are implemented. Model inference and MongoDB integration are not implemented yet.\n\n```powershell\npython -m venv .venv\n.\\.venv\\Scripts\\Activate.ps1\npython -m pip install -r requirements.txt\nuvicorn app.main:app --reload\n```\nDocs: http://127.0.0.1:8000/docs

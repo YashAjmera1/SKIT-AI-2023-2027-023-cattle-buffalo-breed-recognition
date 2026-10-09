@@ -1,0 +1,1 @@
+# Frontend\n\nReact + Tailwind CSS frontend is planned but not created yet. Planned screens: home, image upload/preview, breed prediction result with confidence, and breed information.
