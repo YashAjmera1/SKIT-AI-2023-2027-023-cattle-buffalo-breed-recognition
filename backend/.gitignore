@@ -1,0 +1,5 @@
+.env
+*.db
+.pytest_cache/
+models/*.keras
+models/*.h5
