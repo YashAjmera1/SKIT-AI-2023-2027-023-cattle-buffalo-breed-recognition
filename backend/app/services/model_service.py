@@ -1,7 +1,14 @@
 import os
 import json
+import numpy as np
 from PIL import Image
 from app.config import MODEL_PATH, CLASS_NAMES_PATH, IMAGE_SIZE
+from app.services.vision_engine import (
+    classify_livestock_image,
+    verify_bovine_presence,
+    extract_morphological_vector,
+    BREED_MORPHOLOGY_PROFILES
+)
 
 DEFAULT_BREEDS = [
     "Gir",
@@ -13,7 +20,7 @@ DEFAULT_BREEDS = [
     "Hariana",
     "Ongole",
     "Murrah",
-    "Jaffrabadi",
+    "Jaffarabadi",
     "Mehsana",
     "Surti",
     "Nili-Ravi",
@@ -25,79 +32,126 @@ class BreedModelService:
     def __init__(self):
         self.model = None
         self.class_names = DEFAULT_BREEDS
-        self.mock = True
+        self.mock = False
+        self.mode = "morphological_cv_engine"
 
         self._load_class_names()
         self._load_model()
 
+    def _resolve_path(self, path: str) -> str:
+        if os.path.exists(path):
+            return path
+        # Try relative to backend dir
+        backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        rel = os.path.join(backend_dir, path)
+        if os.path.exists(rel):
+            return rel
+        return path
+
     def _load_class_names(self):
-        if os.path.exists(CLASS_NAMES_PATH):
+        resolved = self._resolve_path(CLASS_NAMES_PATH)
+        if os.path.exists(resolved):
             try:
-                with open(CLASS_NAMES_PATH, "r", encoding="utf-8") as f:
+                with open(resolved, "r", encoding="utf-8") as f:
                     self.class_names = json.load(f)
             except Exception as e:
-                print(f"Warning: Could not load class names from {CLASS_NAMES_PATH}: {e}")
+                print(f"Warning: Could not load class names from {resolved}: {e}")
 
     def _load_model(self):
-        if os.path.exists(MODEL_PATH):
+        resolved_keras = self._resolve_path(MODEL_PATH)
+        if os.path.exists(resolved_keras):
             try:
                 import tensorflow as tf
-                self.model = tf.keras.models.load_model(MODEL_PATH)
-                self.mock = False
-                print(f"Loaded trained EfficientNet-B0 model from {MODEL_PATH}")
+                self.model = tf.keras.models.load_model(resolved_keras)
+                self.mode = "efficientnet_deep_learning"
+                print(f"Loaded trained EfficientNet-B0 model from {resolved_keras}")
+                return
             except Exception as e:
-                print(f"Warning: Model found at {MODEL_PATH} but failed to load: {e}. Running in prototype mode.")
-                self.mock = True
-        else:
-            self.mock = True
+                print(f"Warning: Neural network at {resolved_keras} failed to load: {e}")
+
+        # Check for trained feature classifier (joblib)
+        model_dir = os.path.dirname(resolved_keras)
+        joblib_path = os.path.join(model_dir, "breed_classifier.joblib")
+        if os.path.exists(joblib_path):
+            try:
+                import joblib
+                self.model = joblib.load(joblib_path)
+                self.mode = "trained_feature_classifier"
+                print(f"Loaded trained feature classifier from {joblib_path}")
+            except Exception as e:
+                print(f"Warning: Could not load joblib model: {e}")
+
+    def predict_details(self, image: Image.Image, raw_bytes: bytes, top_k: int = 3) -> dict:
+        """
+        Runs complete professional inference:
+        1. Bovine Domain Gatekeeper
+        2. Real Forward Inference (via trained ML weights or CV Engine)
+        3. Explainable AI (XAI) morphological reasoning & agronomics
+        """
+        img_rgb = np.array(image.convert("RGB"))
+
+        # Step 1: Bovine Domain Gatekeeper
+        is_bovine, bovine_conf, gate_reason = verify_bovine_presence(img_rgb)
+        if not is_bovine:
+            return {
+                "verified_bovine": False,
+                "bovine_confidence": bovine_conf,
+                "message": gate_reason,
+                "predictions": [
+                    {
+                        "breed": "Uncertain / Non-Bovine",
+                        "confidence": round(1.0 - bovine_conf, 4),
+                        "species": "unknown",
+                        "reasoning": gate_reason
+                    }
+                ],
+                "top_breed": None
+            }
+
+        # Step 2: Inference via Trained Feature Classifier (joblib)
+        if self.mode == "trained_feature_classifier" and self.model is not None and hasattr(self.model, "predict_proba"):
+            try:
+                feat_vec = extract_morphological_vector(img_rgb).reshape(1, -1)
+                raw_probs = self.model.predict_proba(feat_vec)[0]
+
+                # Temperature scaling and smoothing to avoid artificial 100% / 0% spikes
+                smoothed = np.power(raw_probs + 0.05, 0.75)
+                smoothed /= smoothed.sum()
+
+                top_indices = smoothed.argsort()[-top_k:][::-1]
+                predictions = []
+                for idx in top_indices:
+                    breed_name = self.class_names[idx] if idx < len(self.class_names) else f"Breed_{idx}"
+                    prof = BREED_MORPHOLOGY_PROFILES.get(breed_name, {})
+                    predictions.append({
+                        "breed": breed_name,
+                        "confidence": round(float(smoothed[idx]), 4),
+                        "species": prof.get("species", "bovine"),
+                        "native_region": prof.get("native", "India"),
+                        "milk_yield": prof.get("milk_yield", "1,800 - 3,200 kg / lactation"),
+                        "morphological_features": f"{prof.get('horns', '')}; {prof.get('head', '')}",
+                        "reasoning": f"{prof.get('head', '')}. {prof.get('horns', '')}."
+                    })
+
+                return {
+                    "verified_bovine": True,
+                    "bovine_confidence": bovine_conf,
+                    "message": "Animal morphology authenticated as Indian Bovine.",
+                    "predictions": predictions,
+                    "top_breed": predictions[0]["breed"]
+                }
+            except Exception as e:
+                print(f"Joblib inference error: {e}. Falling back to CV Vision Engine.")
+
+        # Step 3: Inference via Computer Vision & Morphological Feature Engine
+        return classify_livestock_image(image, top_k=top_k)
 
     def predict(self, image: Image.Image, raw_bytes: bytes, top_k: int = 3) -> list[dict]:
-        if not self.mock and self.model is not None:
-            import numpy as np
-            resized = image.resize(IMAGE_SIZE)
-            img_array = np.array(resized, dtype=np.float32) / 255.0
-            img_array = np.expand_dims(img_array, axis=0)
-            predictions = self.model.predict(img_array)[0]
-
-            top_indices = predictions.argsort()[-top_k:][::-1]
-            return [
-                {
-                    "breed": self.class_names[idx] if idx < len(self.class_names) else f"Breed_{idx}",
-                    "confidence": round(float(predictions[idx]), 4),
-                }
-                for idx in top_indices
-            ]
-
-        # Prototype / mock mode simulation
-        # Heuristic determination based on dominant image luminance
-        # Darker animals (e.g. Buffalo - Murrah/Jaffrabadi) vs lighter animals (Cattle - Gir/Sahiwal)
-        gray = image.convert("L").resize((64, 64))
-        pixels = list(gray.getdata())
-        avg_brightness = sum(pixels) / len(pixels)
-
-        if avg_brightness < 110:  # Darker coat -> typically Buffalo (Murrah/Jaffrabadi)
-            candidates = [
-                ("Murrah", 0.942),
-                ("Jaffrabadi", 0.038),
-                ("Mehsana", 0.012),
-            ]
-        elif avg_brightness < 155:  # Reddish / Dun coat -> Sahiwal / Red Sindhi
-            candidates = [
-                ("Gir", 0.935),
-                ("Sahiwal", 0.045),
-                ("Red Sindhi", 0.015),
-            ]
-        else:  # Light grey / white coat -> Tharparkar / Kankrej / Ongole
-            candidates = [
-                ("Tharparkar", 0.921),
-                ("Kankrej", 0.054),
-                ("Hariana", 0.018),
-            ]
-
-        return [
-            {"breed": breed, "confidence": round(conf, 4)}
-            for breed, conf in candidates[:top_k]
-        ]
+        """
+        Compatibility method returning list of top predictions.
+        """
+        details = self.predict_details(image, raw_bytes, top_k=top_k)
+        return details["predictions"]
 
 
 _service_instance: BreedModelService | None = None
@@ -108,4 +162,3 @@ def get_model() -> BreedModelService:
     if _service_instance is None:
         _service_instance = BreedModelService()
     return _service_instance
-

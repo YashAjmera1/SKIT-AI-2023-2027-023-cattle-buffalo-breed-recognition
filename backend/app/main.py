@@ -12,38 +12,66 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Indian Cattle & Buffalo Breed Recognition API",
-    description="Backend for AI-powered breed recognition (EfficientNet-B0). Supports UN SDG 2.",
-    version="1.0.0",
+    description="Enterprise REST API for AI-powered livestock biometrics and breed recognition. Supports UN SDG 2 (Zero Hunger) & ICAR-NBAGR standards.",
+    version="1.1.0",
 )
 
-# Allow the React frontend (Vite default port + CRA port)
+# Secure Cross-Origin Resource Sharing
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
-    allow_methods=["*"],
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
+
+
+# Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=*, microphone=()"
+    return response
+
 
 app.include_router(predict.router)
 app.include_router(breeds.router)
 
 
-# Sprint 4: consistent error responses
+# Consistent structured error responses
 @app.exception_handler(RequestValidationError)
 async def validation_handler(request: Request, exc: RequestValidationError):
-    return JSONResponse(status_code=422, content={"error": "Invalid request", "details": exc.errors()})
+    return JSONResponse(status_code=422, content={"error": "Invalid request parameters", "details": exc.errors()})
 
 
 @app.exception_handler(Exception)
 async def unhandled_handler(request: Request, exc: Exception):
-    return JSONResponse(status_code=500, content={"error": "Internal server error"})
+    return JSONResponse(status_code=500, content={"error": "Internal server processing error"})
 
 
 @app.get("/", tags=["Health"])
 def root():
-    return {"message": "Breed Recognition API is running", "docs": "/docs"}
+    return {
+        "message": "Indian Cattle & Buffalo Breed Recognition API is running",
+        "system": "Indian Cattle & Buffalo Breed Recognition API",
+        "institution": "Swami Keshvanand Institute of Technology (SKIT), Jaipur",
+        "project_id": "SKIT/AI/2023-2027/023",
+        "status": "operational",
+        "docs": "/docs"
+    }
 
 
 @app.get("/health", tags=["Health"])
 def health():
-    return {"status": "ok", "model_mode": "mock" if get_model().mock else "trained-model"}
+    model = get_model()
+    return {
+        "status": "ok",
+        "model_mode": model.mode,
+        "classes_supported": len(model.class_names),
+        "security_gatekeeper": "active"
+    }

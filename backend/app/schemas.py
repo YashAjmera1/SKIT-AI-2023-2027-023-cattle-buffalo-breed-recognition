@@ -30,6 +30,10 @@ class BreedOut(BreedBase):
 class TopPrediction(BaseModel):
     breed: str
     confidence: float
+    species: str | None = None
+    native_region: str | None = None
+    milk_yield: str | None = None
+    reasoning: str | None = None
 
 
 class PredictionOut(BaseModel):
@@ -39,6 +43,9 @@ class PredictionOut(BaseModel):
     confidence: float
     top_predictions: list[TopPrediction]
     breed_info: BreedOut | None = None
+    is_verified_bovine: bool = True
+    verification_message: str | None = None
+    reasoning: str | None = None
     created_at: datetime
 
 

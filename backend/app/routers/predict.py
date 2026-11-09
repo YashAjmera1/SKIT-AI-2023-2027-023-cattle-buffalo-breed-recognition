@@ -15,7 +15,8 @@ async def predict_breed(
     db: Session = Depends(get_db),
 ):
     data, image = await read_and_validate_image(file)
-    top = get_model().predict(image, data, top_k=3)
+    result = get_model().predict_details(image, data, top_k=3)
+    top = result["predictions"]
     best = top[0]
 
     saved = crud.save_prediction(db, file.filename, best["breed"], best["confidence"])
@@ -26,6 +27,9 @@ async def predict_breed(
         confidence=best["confidence"],
         top_predictions=top,
         breed_info=saved.breed,
+        is_verified_bovine=result.get("verified_bovine", True),
+        verification_message=result.get("message"),
+        reasoning=best.get("reasoning"),
         created_at=saved.created_at,
     )
 
