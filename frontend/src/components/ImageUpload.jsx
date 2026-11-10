@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -23,7 +23,66 @@ export default function ImageUpload({
 }) {
   const [dragOver, setDragOver] = useState(false)
   const [validationError, setValidationError] = useState('')
+  const [isCameraActive, setIsCameraActive] = useState(false)
+  const [cameraError, setCameraError] = useState('')
+
   const fileInputRef = useRef(null)
+  const videoRef = useRef(null)
+  const streamRef = useRef(null)
+
+  // Cleanup video stream on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera()
+    }
+  }, [])
+
+  const startCamera = async () => {
+    setCameraError('')
+    setValidationError('')
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      })
+      streamRef.current = stream
+      setIsCameraActive(true)
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+        }
+      }, 100)
+    } catch (err) {
+      console.error('Camera access error:', err)
+      setCameraError('Unable to access camera. Please check camera permissions or upload an image.')
+    }
+  }
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop())
+      streamRef.current = null
+    }
+    setIsCameraActive(false)
+  }
+
+  const capturePhoto = () => {
+    if (!videoRef.current) return
+    const video = videoRef.current
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth || 640
+    canvas.height = video.videoHeight || 480
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const liveFile = new File([blob], `live_capture_${Date.now()}.jpg`, { type: 'image/jpeg' })
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
+        stopCamera()
+        onImageSelected(liveFile, dataUrl, 'Live Camera Capture')
+      }
+    }, 'image/jpeg', 0.92)
+  }
 
   const validateAndProcessFile = (file) => {
     setValidationError('')
@@ -67,6 +126,7 @@ export default function ImageUpload({
 
   const handleSampleClick = (sampleName) => {
     setValidationError('')
+    stopCamera()
     const mockFile = new File([sampleName], `${sampleName.toLowerCase()}_sample.jpg`, { type: 'image/jpeg' })
     onImageSelected(mockFile, SAMPLE_PREVIEWS[sampleName], sampleName)
   }
@@ -77,7 +137,7 @@ export default function ImageUpload({
         <div className="panel-step">01</div>
         <div>
           <h2 className="panel-title">Upload Livestock Photo</h2>
-          <p className="panel-subtitle">Select or drop an indigenous cattle or buffalo image</p>
+          <p className="panel-subtitle">Select, capture, or drop an indigenous cattle or buffalo image</p>
         </div>
       </div>
 
@@ -99,8 +159,51 @@ export default function ImageUpload({
         </button>
       </div>
 
-      {/* Dropzone or Preview */}
-      {previewUrl ? (
+      {/* Live Camera Viewfinder Modal or Dropzone */}
+      {isCameraActive ? (
+        <div className="camera-viewfinder" style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#000', marginBottom: '1rem' }}>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            style={{ width: '100%', height: '280px', objectFit: 'cover' }}
+          />
+          <div style={{
+            position: 'absolute',
+            inset: '20px',
+            border: '2px dashed rgba(255, 255, 255, 0.65)',
+            borderRadius: '8px',
+            pointerEvents: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'rgba(255, 255, 255, 0.75)',
+            fontSize: '0.8rem',
+            fontWeight: 600
+          }}>
+            [ Align cow or buffalo within frame ]
+          </div>
+          <div style={{ padding: '0.75rem', backgroundColor: '#0f172a', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+            <button
+              type="button"
+              className="toggle-btn"
+              onClick={capturePhoto}
+              style={{ backgroundColor: 'var(--primary)', color: '#fff', fontWeight: 700 }}
+            >
+              📸 Snap Photo
+            </button>
+            <button
+              type="button"
+              className="toggle-btn"
+              onClick={stopCamera}
+              style={{ backgroundColor: '#334155', color: '#fff' }}
+            >
+              ✕ Cancel
+            </button>
+          </div>
+        </div>
+      ) : previewUrl ? (
         <div className="preview-container">
           <img src={previewUrl} alt="Livestock Preview" className="preview-image" />
           <button
@@ -113,28 +216,48 @@ export default function ImageUpload({
           </button>
         </div>
       ) : (
-        <div
-          className={`dropzone ${dragOver ? 'dragover' : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleFileChange}
-          />
-          <div className="dropzone-icon">📷</div>
-          <div className="dropzone-text">Click to browse or drag & drop</div>
-          <div className="dropzone-subtext">Supports JPG, PNG, WEBP (Max 5 MB)</div>
+        <div>
+          <div
+            className={`dropzone ${dragOver ? 'dragover' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleFileChange}
+            />
+            <div className="dropzone-icon">📷</div>
+            <div className="dropzone-text">Click to browse or drag & drop</div>
+            <div className="dropzone-subtext">Supports JPG, PNG, WEBP (Max 5 MB)</div>
+          </div>
+
+          <div style={{ marginTop: '0.75rem', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={startCamera}
+              className="toggle-btn"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', padding: '0.4rem 0.85rem' }}
+            >
+              <span>📹</span> Open Live Camera / Webcam
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Validation alert */}
+      {/* Camera / Validation alert */}
+      {cameraError && (
+        <div className="error-banner" style={{ marginTop: '0.5rem' }}>
+          <span>⚠️</span>
+          <span>{cameraError}</span>
+        </div>
+      )}
+
       {validationError && (
-        <div className="error-banner">
+        <div className="error-banner" style={{ marginTop: '0.5rem' }}>
           <span>⚠️</span>
           <span>{validationError}</span>
         </div>
@@ -142,7 +265,7 @@ export default function ImageUpload({
 
       {/* Quick samples */}
       <div className="quick-samples">
-        <div className="quick-samples-label">Or test with verified sample:</div>
+        <div className="quick-samples-label">Or test with verified reference sample:</div>
         <div className="samples-row">
           {category === 'cattle' ? (
             <>
@@ -175,7 +298,7 @@ export default function ImageUpload({
       >
         {isScanning ? (
           <>
-            <span className="pulse-dot"></span> Analyzing with EfficientNet-B0...
+            <span className="pulse-dot"></span> Analyzing with Vision Engine...
           </>
         ) : (
           <>Identify Breed →</>
